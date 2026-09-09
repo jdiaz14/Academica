@@ -1,31 +1,44 @@
-This is a Kotlin Multiplatform project targeting Android, iOS.
+# Académica 🎓
 
-* [/iosApp](./iosApp/iosApp) contains an iOS application. Even if you’re sharing your UI with Compose Multiplatform,
-  you need this entry point for your iOS app. This is also where you should add SwiftUI code for your project.
+**Académica** es una aplicación multiplataforma (Android e iOS) diseñada para la gestión de información académica. Desarrollada con **Kotlin Multiplatform (KMP)** y **Compose Multiplatform**, permite compartir la lógica de negocio y la interfaz de usuario entre ambas plataformas.
 
-* [/shared](./shared/src) is for code that will be shared across your Compose Multiplatform applications.
-  It contains several subfolders:
-  - [commonMain](./shared/src/commonMain/kotlin) is for code that’s common for all targets.
-  - Other folders are for Kotlin code that will be compiled for only the platform indicated in the folder name.
-    For example, if you want to use Apple’s CoreCrypto for the iOS part of your Kotlin app,
-    the [iosMain](./shared/src/iosMain/kotlin) folder would be the right place for such calls.
-    Similarly, if you want to edit the Desktop (JVM) specific part, the [jvmMain](./shared/src/jvmMain/kotlin)
-    folder is the appropriate location.
+## ✨ Características
 
-### Running the apps
+La aplicación incluye módulos de gestión para:
+*   **Autenticación:** Pantalla de Login segura.
+*   **Usuarios:** Control de acceso y perfiles.
+*   **Docentes:** Información detallada del personal académico.
+*   **Asignaturas:** Gestión del currículo y materias.
+*   **Programas:** Estructura de programas académicos.
+*   **Proyectos y Equipos:** Organización de trabajos colaborativos.
 
-Use the run configurations provided by the run widget in your IDE's toolbar. You can also use these commands and options:
+## 🚀 Tecnologías Utilizadas
 
-- Android app: `./gradlew :androidApp:assembleDebug`
-- iOS app: open the [/iosApp](./iosApp) directory in Xcode and run it from there.
+*   **Kotlin Multiplatform (KMP):** Compartición de código entre Android e iOS.
+*   **Compose Multiplatform:** UI declarativa compartida.
+*   **Voyager:** Gestión de navegación fluida entre pantallas.
+*   **Material 3:** Interfaz de usuario moderna y adaptativa.
 
-### Running tests
+## 📁 Estructura del Proyecto
 
-Use the run button in your IDE's editor gutter, or run tests using Gradle tasks:
+*   **androidApp**: Contenedor específico para la aplicación Android.
+*   **iosApp**: Proyecto Xcode necesario para la aplicación iOS.
+*   **shared**: El corazón del proyecto. Contiene toda la lógica y la UI compartida.
+    *   `commonMain`: Aquí se encuentran todas las pantallas (`Screens`) y componentes comunes.
 
-- Android tests: `./gradlew :shared:testAndroidHostTest`
-- iOS tests: `./gradlew :shared:iosSimulatorArm64Test`
+## 🛠️ Requisitos e Instalación
+
+1.  Clonar el repositorio:
+    ```bash
+    git clone https://github.com/jdiaz14/Academica.git
+    ```
+2.  Abrir con **Android Studio**.
+3.  Sincronizar el proyecto con Gradle.
+
+## 📱 Ejecución
+
+*   **Android:** Selecciona el módulo `androidApp` en la parte superior y presiona el botón **Run** (triángulo verde).
+*   **iOS:** Abre la carpeta `iosApp` en Xcode o utiliza la configuración de ejecución de iOS en Android Studio (requiere macOS).
 
 ---
-
-Learn more about [Kotlin Multiplatform](https://www.jetbrains.com/help/kotlin-multiplatform-dev/get-started.html)…
+Desarrollado con ❤️ usando Kotlin Multiplatform.
