@@ -1,96 +1,109 @@
 package com.example.academica
 
 import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInHorizontally
+import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.animation.togetherWith
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ExitToApp
+import androidx.compose.material.icons.automirrored.filled.MenuBook
 import androidx.compose.material.icons.filled.Badge
 import androidx.compose.material.icons.filled.Folder
 import androidx.compose.material.icons.filled.Groups
-import androidx.compose.material.icons.filled.MenuBook
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.School
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.HorizontalDivider
-import androidx.compose.material3.Icon
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.NavigationBar
-import androidx.compose.material3.NavigationBarItem
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import cafe.adriel.voyager.core.screen.Screen
 import cafe.adriel.voyager.navigator.LocalNavigator
 import cafe.adriel.voyager.navigator.currentOrThrow
 
-class MenuScreen : Screen {
+enum class TabItem(val title: String, val icon: ImageVector) {
+    USUARIOS("Usuarios", Icons.Default.Person),
+    PROGRAMAS("Programas", Icons.Default.School),
+    ASIGNATURAS("Asignaturas", Icons.AutoMirrored.Filled.MenuBook),
+    PROYECTOS("Proyectos", Icons.Default.Folder),
+    EQUIPOS("Equipos", Icons.Default.Groups),
+    DOCENTES("Docentes", Icons.Default.Badge)
+}
+
+class MenuScreen(private val usuario: UsuarioData) : Screen {
 
     @Composable
     override fun Content() {
         val navigator = LocalNavigator.currentOrThrow
-        var selectedItem by remember { mutableIntStateOf(0) }
+
+        val availableTabs = remember(usuario.rol) {
+            when (usuario.rol) {
+                "Administrador" -> listOf(
+                    TabItem.USUARIOS, TabItem.PROGRAMAS, TabItem.ASIGNATURAS, 
+                    TabItem.PROYECTOS, TabItem.EQUIPOS, TabItem.DOCENTES
+                )
+                "Docente" -> listOf(
+                    TabItem.PROYECTOS, TabItem.EQUIPOS, TabItem.DOCENTES
+                )
+                "Estudiante" -> listOf(
+                    TabItem.PROYECTOS, TabItem.EQUIPOS
+                )
+                else -> emptyList()
+            }
+        }
+
+        var selectedTabIndex by remember { mutableIntStateOf(0) }
+        val selectedTab = availableTabs.getOrNull(selectedTabIndex) ?: availableTabs.firstOrNull()
+
+        val (roleColor, roleBg) = when (usuario.rol) {
+            "Administrador" -> Pair(Color(0xFFE05A10), Color(0xFFFFECE5))
+            "Docente" -> Pair(Color(0xFF005691), Color(0xFFE8F0FE))
+            else -> Pair(Color(0xFF2E6B27), Color(0xFFE6F4EA))
+        }
 
         Scaffold(
             bottomBar = {
-                NavigationBar(
-                    tonalElevation = 8.dp
-                ) {
-                    val labelStyle = MaterialTheme.typography.labelSmall.copy(fontSize = 10.sp)
+                if (availableTabs.isNotEmpty()) {
+                    NavigationBar(
+                        tonalElevation = 6.dp,
+                        containerColor = MaterialTheme.colorScheme.surface
+                    ) {
+                        val fontSize = if (availableTabs.size > 4) 9.sp else 11.sp
+                        val labelStyle = MaterialTheme.typography.labelSmall.copy(
+                            fontSize = fontSize,
+                            fontWeight = FontWeight.SemiBold
+                        )
 
-                    NavigationBarItem(
-                        selected = selectedItem == 0,
-                        onClick = { selectedItem = 0 },
-                        label = { Text("Usuarios", style = labelStyle) },
-                        icon = { Icon(Icons.Default.Person, contentDescription = "Usuarios") }
-                    )
-                    NavigationBarItem(
-                        selected = selectedItem == 1,
-                        onClick = { selectedItem = 1 },
-                        label = { Text("Programas", style = labelStyle) },
-                        icon = { Icon(Icons.Default.School, contentDescription = "Programas") }
-                    )
-                    NavigationBarItem(
-                        selected = selectedItem == 2,
-                        onClick = { selectedItem = 2 },
-                        label = { Text("Asignaturas", style = labelStyle) },
-                        icon = { Icon(Icons.Default.MenuBook, contentDescription = "Asignaturas") }
-                    )
-                    NavigationBarItem(
-                        selected = selectedItem == 3,
-                        onClick = { selectedItem = 3 },
-                        label = { Text("Proyectos", style = labelStyle) },
-                        icon = { Icon(Icons.Default.Folder, contentDescription = "Proyectos") }
-                    )
-                    NavigationBarItem(
-                        selected = selectedItem == 4,
-                        onClick = { selectedItem = 4 },
-                        label = { Text("Equipos", style = labelStyle) },
-                        icon = { Icon(Icons.Default.Groups, contentDescription = "Equipos") }
-                    )
-                    NavigationBarItem(
-                        selected = selectedItem == 5,
-                        onClick = { selectedItem = 5 },
-                        label = { Text("Docentes", style = labelStyle) },
-                        icon = { Icon(Icons.Default.Badge, contentDescription = "Docentes") }
-                    )
+                        availableTabs.forEachIndexed { index, tab ->
+                            NavigationBarItem(
+                                selected = selectedTabIndex == index,
+                                onClick = { selectedTabIndex = index },
+                                label = {
+                                    Text(
+                                        text = tab.title,
+                                        style = labelStyle,
+                                        maxLines = 1,
+                                        softWrap = false,
+                                        overflow = TextOverflow.Clip
+                                    )
+                                },
+                                icon = { Icon(tab.icon, contentDescription = tab.title) }
+                            )
+                        }
+                    }
                 }
             }
         ) { paddingValues ->
@@ -98,58 +111,118 @@ class MenuScreen : Screen {
                 modifier = Modifier
                     .fillMaxSize()
                     .padding(paddingValues)
-                    .padding(16.dp)
             ) {
-                // Cabecera con Identificación de Usuario (Guía)
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    verticalAlignment = Alignment.CenterVertically
+                // Bar de Encabezado Superior (Top Bar Unificada)
+                Surface(
+                    tonalElevation = 3.dp,
+                    color = MaterialTheme.colorScheme.surface,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .statusBarsPadding()
                 ) {
-                    Column(modifier = Modifier.weight(1f)) {
-                        Text(
-                            text = "Julian Andres Diaz Guevara",
-                            style = MaterialTheme.typography.titleLarge,
-                            fontWeight = FontWeight.Bold
-                        )
-                        Text(
-                            text = "Sesión Activa - Académica",
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.secondary
-                        )
-                    }
-                    Button(
-                        onClick = {
-                            // Cierre de sesión (Guía)
-                            navigator.popUntilRoot()
-                        },
-                        colors = ButtonDefaults.buttonColors(
-                            containerColor = MaterialTheme.colorScheme.errorContainer,
-                            contentColor = MaterialTheme.colorScheme.onErrorContainer
-                        )
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 16.dp, vertical = 12.dp),
+                        verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Text("Salir")
+                        // Contenedor Circular para el Logo
+                        Box(
+                            modifier = Modifier
+                                .size(44.dp)
+                                .clip(CircleShape)
+                                .background(MaterialTheme.colorScheme.surfaceVariant),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            LogoAcademica(size = 38.dp, showText = false)
+                        }
+
+                        Spacer(modifier = Modifier.width(12.dp))
+
+                        // Info del Usuario y Rol
+                        Column(modifier = Modifier.weight(1f)) {
+                            Text(
+                                text = usuario.nombre_completo,
+                                style = MaterialTheme.typography.titleMedium,
+                                fontWeight = FontWeight.Bold,
+                                color = MaterialTheme.colorScheme.onSurface,
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis
+                            )
+                            Spacer(modifier = Modifier.height(2.dp))
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                Surface(
+                                    shape = RoundedCornerShape(8.dp),
+                                    color = roleBg
+                                ) {
+                                    Text(
+                                        text = usuario.rol,
+                                        style = MaterialTheme.typography.labelSmall,
+                                        color = roleColor,
+                                        fontWeight = FontWeight.Bold,
+                                        modifier = Modifier.padding(horizontal = 8.dp, vertical = 2.dp)
+                                    )
+                                }
+                                Spacer(modifier = Modifier.width(8.dp))
+                                Text(
+                                    text = "USB BOGOTÁ",
+                                    style = MaterialTheme.typography.labelSmall,
+                                    fontWeight = FontWeight.Bold,
+                                    color = MaterialTheme.colorScheme.outline
+                                )
+                            }
+                        }
+
+                        Spacer(modifier = Modifier.width(8.dp))
+
+                        IconButton(
+                            onClick = { navigator.popUntilRoot() },
+                            modifier = Modifier
+                                .clip(CircleShape)
+                                .background(MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.5f))
+                        ) {
+                            Icon(
+                                imageVector = Icons.AutoMirrored.Filled.ExitToApp,
+                                contentDescription = "Salir",
+                                tint = MaterialTheme.colorScheme.error
+                            )
+                        }
                     }
                 }
 
-                Spacer(modifier = Modifier.height(12.dp))
-                HorizontalDivider()
-                Spacer(modifier = Modifier.height(12.dp))
+                HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f))
 
-                // Contenido del Módulo con Animación Sencilla (Guía)
-                AnimatedContent(
-                    targetState = selectedItem,
-                    transitionSpec = {
-                        fadeIn().togetherWith(fadeOut())
-                    },
-                    modifier = Modifier.weight(1f)
-                ) { index ->
-                    when (index) {
-                        0 -> UsuariosModule()
-                        1 -> ProgramasModule()
-                        2 -> AsignaturasModule()
-                        3 -> ProyectosModule()
-                        4 -> EquiposModule()
-                        5 -> DocentesModule()
+                // Contenedor de Contenido
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .weight(1f)
+                ) {
+                    if (selectedTab != null) {
+                        AnimatedContent(
+                            targetState = selectedTab,
+                            transitionSpec = {
+                                (fadeIn(animationSpec = tween(220)) + slideInHorizontally(animationSpec = tween(220)) { it / 3 }) togetherWith
+                                (fadeOut(animationSpec = tween(180)) + slideOutHorizontally(animationSpec = tween(180)) { -it / 3 })
+                            },
+                            label = "Cambio de Modulo"
+                        ) { tab ->
+                            when (tab) {
+                                TabItem.USUARIOS -> UsuariosModule()
+                                TabItem.PROGRAMAS -> ProgramasModule()
+                                TabItem.ASIGNATURAS -> AsignaturasModule()
+                                TabItem.PROYECTOS -> ProyectosModule()
+                                TabItem.EQUIPOS -> EquiposModule()
+                                TabItem.DOCENTES -> DocentesModule()
+                            }
+                        }
+                    } else {
+                        Box(
+                            modifier = Modifier.fillMaxSize(),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Text("No tiene permisos para acceder a ningún módulo.")
+                        }
                     }
                 }
             }
